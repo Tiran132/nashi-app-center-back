@@ -1,26 +1,46 @@
-import { Injectable } from '@nestjs/common';
-import { CreateApplicationDto } from './dto/create-application.dto';
-import { UpdateApplicationDto } from './dto/update-application.dto';
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from '../prisma/prisma.service'
+import {
+	CreateApplicationDto,
+	GetApplicationDto
+} from './dto/create-application.dto'
+import { UpdateApplicationDto } from './dto/update-application.dto'
 
 @Injectable()
 export class ApplicationService {
-  create(createApplicationDto: CreateApplicationDto) {
-    return 'This action adds a new application';
-  }
+	constructor(private prisma: PrismaService) {}
 
-  findAll() {
-    return `This action returns all application`;
-  }
+	async create(
+		createApplicationDto: CreateApplicationDto
+	): Promise<GetApplicationDto> {
+		return this.prisma.application.create({
+			data: createApplicationDto
+		})
+	}
 
-  findOne(id: number) {
-    return `This action returns a #${id} application`;
-  }
+	async findAll(): Promise<GetApplicationDto[]> {
+		return this.prisma.application.findMany()
+	}
 
-  update(id: number, updateApplicationDto: UpdateApplicationDto) {
-    return `This action updates a #${id} application`;
-  }
+	async findOne(id: number): Promise<GetApplicationDto | null> {
+		return this.prisma.application.findUnique({
+			where: { id }
+		})
+	}
 
-  remove(id: number) {
-    return `This action removes a #${id} application`;
-  }
+	async update(
+		id: number,
+		updateApplicationDto: UpdateApplicationDto
+	): Promise<GetApplicationDto> {
+		return this.prisma.application.update({
+			where: { id },
+			data: updateApplicationDto
+		})
+	}
+
+	async remove(id: number): Promise<GetApplicationDto> {
+		return this.prisma.application.delete({
+			where: { id }
+		})
+	}
 }
