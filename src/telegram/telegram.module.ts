@@ -3,6 +3,7 @@ import { TelegrafModule } from 'nestjs-telegraf';
 import { TelegramUpdate } from './telegram.update';
 import { UserService } from 'src/user/user.service';
 import { Agent } from 'https';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { Agent } from 'https';
   providers: [
     TelegramUpdate,
     UserService,
+    PrismaService
   ],
 })
 export class TelegramModule {}

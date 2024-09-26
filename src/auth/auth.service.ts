@@ -33,7 +33,7 @@ export class AuthService {
 				token: await this.jwtService.signAsync(payload)
 			}
 		} catch (e) {
-			throw new UnauthorizedException()
+			throw new UnauthorizedException(`${e.message}`)
 		}
 	}
 
