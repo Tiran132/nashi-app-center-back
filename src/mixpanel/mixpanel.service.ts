@@ -1,22 +1,29 @@
 import * as Mixpanel from 'mixpanel';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MixpanelService {
-  private mixpanel: any;
+  private mixpanel: Mixpanel.Mixpanel;
 
-  constructor(private configService: ConfigService) {
-    this.mixpanel = Mixpanel.init(
-      this.configService.get('MIXPANEL_TOKEN'),
-      {
-        debug: true,
-        protocol: 'http',
-      },
-    );
+  constructor() {
+    this.mixpanel = Mixpanel.init(process.env.MIXPANEL_TOKEN);
   }
 
-  public track(eventName: string, action: any = {}): void {
-    this.mixpanel.track(eventName, action);
+  track(event: string, properties: any) {
+    this.mixpanel.track(event, properties);
   }
+
+  people = {
+    set: (userId: string, properties: any) => {
+      return new Promise<void>((resolve, reject) => {
+        this.mixpanel.people.set(userId, properties, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    }
+  };
 }

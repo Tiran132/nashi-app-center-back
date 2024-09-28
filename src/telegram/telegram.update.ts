@@ -12,7 +12,7 @@ export class TelegramUpdate {
 	constructor(
 		@InjectBot() private readonly bot: Telegraf<Context>,
 		private readonly userService: UserService,
-		private readonly mixpanelService: MixpanelService,
+		private readonly mixpanelService: MixpanelService
 	) {}
 
 	@Start()
@@ -20,7 +20,10 @@ export class TelegramUpdate {
 		@Ctx()
 		ctx: SceneContext & { session: SceneSession & { messageIndex: number } }
 	) {
-		const user = await this.userService.findOrCreateUser(ctx.from.id, ctx.from.username)
+		const user = await this.userService.findOrCreateUser(
+			ctx.from.id,
+			ctx.from.username
+		)
 		await ctx.reply('Welcome to the bot!')
 
 		try {
@@ -28,11 +31,23 @@ export class TelegramUpdate {
 				userId: user.id,
 				telegramId: ctx.from.id,
 				username: ctx.from.username,
-				distinct_id: ctx.from.id
+				distinct_id: ctx.from.id.toString()
 			})
-			this.logger.log(`Tracked start command for user: ${user.id}`)
+
+			await this.mixpanelService.people.set(ctx.from.id.toString(), {
+				$username: ctx.from.username,
+				$name: ctx.from.first_name,
+				$last_name: ctx.from.last_name,
+				$telegram_id: ctx.from.id
+			})
+
+			this.logger.log(
+				`Tracked start command and set profile for user: ${user.id}`
+			)
 		} catch (error) {
-			this.logger.error(`Failed to track start command: ${error.message}`)
+			this.logger.error(
+				`Failed to track start command or set profile: ${error.message}`
+			)
 		}
 	}
 }
