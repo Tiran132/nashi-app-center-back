@@ -3,8 +3,10 @@ import { ApplicationService } from './application.service';
 import { ApplicationController } from './application.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 
+
 @Module({
   controllers: [ApplicationController],
   providers: [ApplicationService, PrismaService],
+  exports: [ApplicationService],
 })
 export class ApplicationModule {}
