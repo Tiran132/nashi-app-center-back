@@ -6,15 +6,13 @@ import {
 } from './dto/create-application.dto'
 import { UpdateApplicationDto } from './dto/update-application.dto'
 
+
 @Injectable()
 export class ApplicationService {
-
-	constructor(
-		private prisma: PrismaService
-	) {}
+	constructor(private prisma: PrismaService) {}
 
 	async create(
-		createApplicationDto: CreateApplicationDto,
+		createApplicationDto: CreateApplicationDto
 	): Promise<GetApplicationDto> {
 		return this.prisma.application.create({
 			data: createApplicationDto
@@ -46,4 +44,6 @@ export class ApplicationService {
 			where: { id }
 		})
 	}
+
+	
 }
