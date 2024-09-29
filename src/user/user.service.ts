@@ -33,4 +33,12 @@ export class UserService {
 
 		return user
 	}
+
+	async getAllUsers() {
+		return this.prisma.user.findMany()
+	}
+
+	async setUserIsAdmin(userId: number, isAdmin: boolean) {
+		return this.prisma.user.update({where: {id: userId}, data: {isAdmin}})
+	}
 }

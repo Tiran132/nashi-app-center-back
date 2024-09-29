@@ -38,6 +38,13 @@ export class CreateApplicationDto {
 	@IsInt()
 	@Min(0)
 	orderNumber?: number
+
+	@IsString()
+	@IsOptional()
+	shortDesctiption: string
+
+	@IsString()
+	url: string
 }
 
 export class GetApplicationDto {
@@ -77,4 +84,11 @@ export class GetApplicationDto {
 	@ApiProperty({ description: 'The last update date of the application' })
 	@IsDate()
 	updatedAt: Date
+
+	@IsString()
+	@IsOptional()
+	shortDesctiption: string
+
+	@IsString()
+	url: string
 }
