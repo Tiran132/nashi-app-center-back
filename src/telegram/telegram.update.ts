@@ -1,6 +1,6 @@
 import { Ctx, InjectBot, Start, Update } from 'nestjs-telegraf'
 import { UserService } from 'src/user/user.service'
-import { Context, Telegraf } from 'telegraf'
+import { Context, Markup, Telegraf } from 'telegraf'
 import { SceneContext, SceneSession } from 'telegraf/typings/scenes'
 import { MixpanelService } from 'src/mixpanel/mixpanel.service'
 import { Logger } from '@nestjs/common'
@@ -13,21 +13,24 @@ export class TelegramUpdate {
 		@InjectBot() private readonly bot: Telegraf<Context>,
 		private readonly userService: UserService,
 		private readonly mixpanelService: MixpanelService
-	) {}
+	) { }
 
 	@Start()
 	async startCommand(
 		@Ctx()
 		ctx: SceneContext & { session: SceneSession & { messageIndex: number } }
 	) {
-		const user = await this.userService.findOrCreateUser(
+		const { user, isNew } = await this.userService.findOrCreateUser(
 			ctx.from.id,
 			ctx.from.username
 		)
-		await ctx.reply('Welcome to the bot!')
+		await ctx.reply('Приветсвую тебя в нашем боте, тут ты можешь найти полезные для себя сервисы!',
+			Markup.inlineKeyboard([
+				Markup.button.webApp("Смотреть сервисы", process.env.URL)
+			]))
 
 		try {
-			this.mixpanelService.track('Bot Start Command', {
+			this.mixpanelService.track('start-bot' + isNew ? ":first-time" : "", {
 				userId: user.id,
 				telegramId: ctx.from.id,
 				username: ctx.from.username,

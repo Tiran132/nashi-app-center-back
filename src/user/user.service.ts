@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service'
 export class UserService {
 	constructor(private readonly prisma: PrismaService) {}
 	async findOrCreateUser(telegramId: number, username?: string) {
+		let isNew = false
 		let user = await this.prisma.user.findUnique({
 			where: {
 				telegramId: telegramId.toString()
@@ -12,6 +13,7 @@ export class UserService {
 		})
 
 		if (!user) {
+			isNew = true
 			user = await this.prisma.user.create({
 				data: {
 					telegramId: telegramId.toString(),
@@ -19,7 +21,7 @@ export class UserService {
 				}
 			})
 		}
-		return user
+		return {user, isNew}
 	}
 
 	async getUserById(userId: number) {
