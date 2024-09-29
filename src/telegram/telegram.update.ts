@@ -30,11 +30,12 @@ export class TelegramUpdate {
 			]))
 
 		try {
-			this.mixpanelService.track('start-bot' + isNew ? ":first-time" : "", {
+			this.mixpanelService.track('Bot Start Command', {
 				userId: user.id,
 				telegramId: ctx.from.id,
 				username: ctx.from.username,
-				distinct_id: ctx.from.id.toString()
+				distinct_id: ctx.from.id.toString(),
+				firstTime: isNew
 			})
 
 			await this.mixpanelService.people.set(ctx.from.id.toString(), {
