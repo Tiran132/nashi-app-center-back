@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import {
-	CreateApplicationDto,
-	GetApplicationDto
-} from './dto/create-application.dto'
+import { CreateApplicationDto } from './dto/create-application.dto'
 import { UpdateApplicationDto } from './dto/update-application.dto'
-
+import { Application } from '@prisma/client'
 
 @Injectable()
 export class ApplicationService {
@@ -13,17 +10,17 @@ export class ApplicationService {
 
 	async create(
 		createApplicationDto: CreateApplicationDto
-	): Promise<GetApplicationDto> {
+	): Promise<Application> {
 		return this.prisma.application.create({
 			data: createApplicationDto
 		})
 	}
 
-	async findAll(): Promise<GetApplicationDto[]> {
+	async findAll(): Promise<Application[]> {
 		return this.prisma.application.findMany()
 	}
 
-	async findOne(id: number): Promise<GetApplicationDto | null> {
+	async findOne(id: number): Promise<Application | null> {
 		return this.prisma.application.findUnique({
 			where: { id }
 		})
@@ -32,18 +29,16 @@ export class ApplicationService {
 	async update(
 		id: number,
 		updateApplicationDto: UpdateApplicationDto
-	): Promise<GetApplicationDto> {
+	): Promise<Application> {
 		return this.prisma.application.update({
 			where: { id },
 			data: updateApplicationDto
 		})
 	}
 
-	async remove(id: number): Promise<GetApplicationDto> {
+	async remove(id: number): Promise<Application> {
 		return this.prisma.application.delete({
 			where: { id }
 		})
 	}
-
-	
 }

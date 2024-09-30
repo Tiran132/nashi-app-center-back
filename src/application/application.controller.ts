@@ -22,6 +22,7 @@ import {
 } from './dto/create-application.dto'
 import { UpdateApplicationDto } from './dto/update-application.dto'
 import { Auth } from 'src/auth/decorators/auth.decorator'
+import { Application } from '@prisma/client'
 
 @ApiTags('applications')
 @ApiBearerAuth('access-token')
@@ -40,7 +41,7 @@ export class ApplicationController {
 	@Auth('admin')
 	create(
 		@Body() createApplicationDto: CreateApplicationDto
-	): Promise<GetApplicationDto> {
+	): Promise<Application> {
 		return this.applicationService.create(createApplicationDto)
 	}
 
@@ -51,7 +52,7 @@ export class ApplicationController {
 		description: 'Return all applications.',
 		type: [GetApplicationDto]
 	})
-	findAll(): Promise<GetApplicationDto[]> {
+	findAll(): Promise<Application[]> {
 		return this.applicationService.findAll()
 	}
 
@@ -67,7 +68,7 @@ export class ApplicationController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'Application not found.'
 	})
-	findOne(@Param('id') id: string): Promise<GetApplicationDto> {
+	findOne(@Param('id') id: string): Promise<Application> {
 		return this.applicationService.findOne(+id)
 	}
 
@@ -88,7 +89,7 @@ export class ApplicationController {
 	update(
 		@Param('id') id: string,
 		@Body() updateApplicationDto: UpdateApplicationDto
-	): Promise<GetApplicationDto> {
+	): Promise<Application> {
 		return this.applicationService.update(+id, updateApplicationDto)
 	}
 
@@ -104,7 +105,7 @@ export class ApplicationController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'Application not found.'
 	})
-	remove(@Param('id') id: string): Promise<GetApplicationDto> {
+	remove(@Param('id') id: string): Promise<Application> {
 		return this.applicationService.remove(+id)
 	}
 }
