@@ -28,7 +28,7 @@ model Application {
   icon             String
   screenshots      String[]
   category         String
-  shortDesctiption String?
+  shortDescription String?
   url              String @default("https://google.com")
   orderNumber      Int?
   createdAt        DateTime @default(now())

@@ -54,4 +54,15 @@ export class TelegramUpdate {
 			)
 		}
 	}
+
+	async sendAdvertising(userId: string, text: string, imageUrl: string) {
+		await this.bot.telegram.sendPhoto(
+			userId,
+			imageUrl,
+			{
+				caption: text,
+				parse_mode: 'HTML'
+			}
+		)
+	}
 }

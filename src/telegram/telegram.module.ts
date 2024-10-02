@@ -25,5 +25,6 @@ import { ConfigService } from '@nestjs/config';
     MixpanelService,
     ConfigService
   ],
+  exports: [TelegramUpdate]
 })
 export class TelegramModule {}
