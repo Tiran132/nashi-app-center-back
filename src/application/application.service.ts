@@ -17,7 +17,12 @@ export class ApplicationService {
 	}
 
 	async findAll(): Promise<Application[]> {
-		return this.prisma.application.findMany()
+		return this.prisma.application.findMany({
+			orderBy: [
+				{ orderNumber: 'asc' },
+				{ updatedAt: 'asc' }
+			]
+		})
 	}
 
 	async findOne(id: number): Promise<Application | null> {
