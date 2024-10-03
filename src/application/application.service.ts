@@ -46,4 +46,45 @@ export class ApplicationService {
 			where: { id }
 		})
 	}
+
+	async updateOrderNumber(id: number, newOrderNumber: number): Promise<Application> {
+		return this.prisma.$transaction(async (prisma) => {
+			const currentApp = await prisma.application.findUnique({ where: { id } });
+			if (!currentApp) {
+				throw new Error('Application not found');
+			}
+
+			if (newOrderNumber > currentApp.orderNumber) {
+				await prisma.application.updateMany({
+					where: {
+						orderNumber: {
+							gt: currentApp.orderNumber,
+							lte: newOrderNumber
+						}
+					},
+					data: {
+						orderNumber: { decrement: 1 }
+					}
+				});
+			} 
+			else if (newOrderNumber < currentApp.orderNumber) {
+				await prisma.application.updateMany({
+					where: {
+						orderNumber: {
+							gte: newOrderNumber,
+							lt: currentApp.orderNumber
+						}
+					},
+					data: {
+						orderNumber: { increment: 1 }
+					}
+				});
+			}
+
+			return prisma.application.update({
+				where: { id },
+				data: { orderNumber: newOrderNumber }
+			});
+		});
+	}
 }

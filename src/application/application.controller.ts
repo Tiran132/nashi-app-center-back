@@ -6,14 +6,16 @@ import {
 	Patch,
 	Param,
 	Delete,
-	HttpStatus
+	HttpStatus,
+	ParseIntPipe
 } from '@nestjs/common'
 import {
 	ApiTags,
 	ApiOperation,
 	ApiResponse,
 	ApiParam,
-	ApiBearerAuth
+	ApiBearerAuth,
+	ApiBody
 } from '@nestjs/swagger'
 import { ApplicationService } from './application.service'
 import {
@@ -107,5 +109,30 @@ export class ApplicationController {
 	})
 	remove(@Param('id') id: string): Promise<Application> {
 		return this.applicationService.remove(+id)
+	}
+
+	@Patch(':id/order')
+	@ApiOperation({ summary: 'Update the order number of an application' })
+	@ApiParam({ name: 'id', description: 'Application id' })
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'The application order number has been successfully updated.',
+		type: GetApplicationDto
+	})
+	@ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Application not found.'
+	})
+	// @Auth('admin')
+	@ApiBody({
+		description: 'New order number for the application',
+		schema: { properties: { orderNumber: { type: 'integer', example: 1 } } }
+	})
+	async updateOrderNumber(
+		@Param('id', ParseIntPipe) id: number,
+		@Body('orderNumber', ParseIntPipe) orderNumber: number
+	): Promise<Application> {
+		return this.applicationService.updateOrderNumber(id, orderNumber)
 	}
 }
