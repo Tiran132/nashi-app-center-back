@@ -39,10 +39,12 @@ export class CreateApplicationDto {
 	@Min(0)
 	orderNumber?: number
 
+	@ApiProperty({ description: 'The shortdescription of the application' })
 	@IsString()
 	@IsOptional()
-	shortDesctiption: string
+	shortDescription?: string
 
+	@ApiProperty({ description: 'The url of the application' })
 	@IsString()
 	url: string
 }
@@ -59,6 +61,10 @@ export class GetApplicationDto {
 	@ApiProperty({ description: 'The description of the application' })
 	@IsString()
 	description: string
+	@ApiProperty({ description: 'The shortdescription of the application' })
+	@IsString()
+	@IsOptional()
+	shortDescription?: string
 
 	@ApiProperty({ description: 'The icon URL of the application' })
 	@IsString()
@@ -85,10 +91,7 @@ export class GetApplicationDto {
 	@IsDate()
 	updatedAt: Date
 
-	@IsString()
-	@IsOptional()
-	shortDesctiption: string
-
+	@ApiProperty({ description: 'The url of the application' })
 	@IsString()
 	url: string
 }
