@@ -55,11 +55,11 @@ export class FileCleanupService {
 		const usedPaths = new Set<string>()
 
 		applications.forEach(app => {
-			if (app.icon && typeof app.icon === 'string' && !app.icon.startsWith('http')) {
+			if (app.icon && typeof app.icon === 'string') {
 				usedPaths.add(this.normalizeFilePath(app.icon))
 			}
 			app.screenshots.forEach(screenshot => {
-				if (screenshot && typeof screenshot === 'string' && !screenshot.startsWith('http')) {
+				if (screenshot && typeof screenshot === 'string') {
 					usedPaths.add(this.normalizeFilePath(screenshot))
 				}
 			})
@@ -85,13 +85,16 @@ export class FileCleanupService {
 		}
 
 		await traverse(directory)
-		return files
+		return files.map(file => this.normalizeFilePath(file))
 	}
 
 	private normalizeFilePath(filePath: string): string {
-		return filePath.replace(/^uploads[/\\]?/, '')  
-			.replace(/\\/g, '/')         
-			.replace(/^[/\\]/, '')         
-			.toLowerCase()                  
+		// Извлекаем путь после 'uploads/'
+		const match = filePath.match(/(?:uploads\/)(.*)/);
+		if (match) {
+			return match[1].replace(/\\/g, '/').toLowerCase();
+		}
+		// Если 'uploads/' не найден, просто нормализуем путь
+		return filePath.replace(/\\/g, '/').replace(/^\//, '').toLowerCase();
 	}
 }
