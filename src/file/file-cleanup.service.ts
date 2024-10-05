@@ -15,10 +15,20 @@ export class FileCleanupService {
 
 			const allFiles = await this.getAllFiles(directory)
 
-			const unusedFiles = allFiles.filter(file => !usedFilePaths.includes(file))
+			const unusedFiles = allFiles.filter(
+				file =>
+					!usedFilePaths.some(
+						usedPath => this.normalizeFilePath(file) === this.normalizeFilePath(usedPath)
+					)
+			)
+
+			this.logger.debug(`Used file paths: ${JSON.stringify(usedFilePaths)}`)
+			this.logger.debug(`All files: ${JSON.stringify(allFiles)}`)
+			this.logger.debug(`Unused files: ${JSON.stringify(unusedFiles)}`)
 
 			for (const file of unusedFiles) {
-				await fs.promises.unlink(file)
+				const fullPath = path.join(directory, file)
+				await fs.promises.unlink(fullPath)
 				this.logger.log(`Deleted unused file: ${file}`)
 			}
 
@@ -45,8 +55,14 @@ export class FileCleanupService {
 		const usedPaths = new Set<string>()
 
 		applications.forEach(app => {
-			usedPaths.add(app.icon)
-			app.screenshots.forEach(screenshot => usedPaths.add(screenshot))
+			if (app.icon && typeof app.icon === 'string' && !app.icon.startsWith('http')) {
+				usedPaths.add(this.normalizeFilePath(app.icon))
+			}
+			app.screenshots.forEach(screenshot => {
+				if (screenshot && typeof screenshot === 'string' && !screenshot.startsWith('http')) {
+					usedPaths.add(this.normalizeFilePath(screenshot))
+				}
+			})
 		})
 
 		return Array.from(usedPaths)
@@ -59,16 +75,23 @@ export class FileCleanupService {
 			const entries = await fs.promises.readdir(dir, { withFileTypes: true })
 
 			for (const entry of entries) {
-				const fullPath = path.join(dir, entry.name)
+				const relativePath = path.join(dir, entry.name).replace(directory, '').replace(/^[/\\]/, '')
 				if (entry.isDirectory()) {
-					await traverse(fullPath)
+					await traverse(path.join(dir, entry.name))
 				} else {
-					files.push(fullPath)
+					files.push(relativePath)
 				}
 			}
 		}
 
 		await traverse(directory)
 		return files
+	}
+
+	private normalizeFilePath(filePath: string): string {
+		return filePath.replace(/^uploads[/\\]?/, '')  
+			.replace(/\\/g, '/')         
+			.replace(/^[/\\]/, '')         
+			.toLowerCase()                  
 	}
 }

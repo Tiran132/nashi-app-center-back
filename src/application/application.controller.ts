@@ -40,7 +40,7 @@ export class ApplicationController {
 		type: GetApplicationDto
 	})
 	@ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
-	@Auth('admin')
+	// @Auth('admin')
 	create(
 		@Body() createApplicationDto: CreateApplicationDto
 	): Promise<Application> {
