@@ -3,7 +3,6 @@ import { FileResponse } from './file.interface'
 import { path } from 'app-root-path'
 import { ensureDir, writeFile } from 'fs-extra'
 import { v4 as uuidv4 } from 'uuid'
-import { russianToTranslit } from './file.helper'
 
 @Injectable()
 export class FileService {

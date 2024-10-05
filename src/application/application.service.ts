@@ -3,10 +3,11 @@ import { PrismaService } from '../prisma/prisma.service'
 import { CreateApplicationDto } from './dto/create-application.dto'
 import { UpdateApplicationDto } from './dto/update-application.dto'
 import { Application } from '@prisma/client'
+import { FileCleanupService } from 'src/file/file-cleanup.service'
 
 @Injectable()
 export class ApplicationService {
-	constructor(private prisma: PrismaService) {}
+	constructor(private prisma: PrismaService, private fileCleanupService: FileCleanupService) {}
 
 	async create(
 		createApplicationDto: CreateApplicationDto
@@ -35,10 +36,24 @@ export class ApplicationService {
 		id: number,
 		updateApplicationDto: UpdateApplicationDto
 	): Promise<Application> {
-		return this.prisma.application.update({
-			where: { id },
-			data: updateApplicationDto
-		})
+		return this.prisma.$transaction(async (prisma) => {
+			const oldApplication = await prisma.application.findUnique({
+				where: { id },
+				select: { icon: true, screenshots: true }
+			});
+
+			const updatedApplication = await prisma.application.update({
+				where: { id },
+				data: updateApplicationDto
+			});
+
+			if (oldApplication.icon !== updatedApplication.icon || 
+				JSON.stringify(oldApplication.screenshots) !== JSON.stringify(updatedApplication.screenshots)) {
+				setImmediate(() => this.fileCleanupService.cleanupUnusedFiles('uploads'));
+			}
+
+			return updatedApplication;
+		});
 	}
 
 	async remove(id: number): Promise<Application> {

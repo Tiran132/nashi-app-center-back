@@ -87,7 +87,7 @@ export class ApplicationController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'Application not found.'
 	})
-	@Auth('admin')
+	// @Auth('admin')
 	update(
 		@Param('id') id: string,
 		@Body() updateApplicationDto: UpdateApplicationDto
@@ -124,7 +124,7 @@ export class ApplicationController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'Application not found.'
 	})
-	// @Auth('admin')
+	@Auth('admin')
 	@ApiBody({
 		description: 'New order number for the application',
 		schema: { properties: { orderNumber: { type: 'integer', example: 1 } } }
