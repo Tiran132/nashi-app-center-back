@@ -40,7 +40,7 @@ export class ApplicationController {
 		type: GetApplicationDto
 	})
 	@ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
-	// @Auth('admin')
+	@Auth('admin')
 	create(
 		@Body() createApplicationDto: CreateApplicationDto
 	): Promise<Application> {
@@ -87,7 +87,7 @@ export class ApplicationController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'Application not found.'
 	})
-	// @Auth('admin')
+	@Auth('admin')
 	update(
 		@Param('id') id: string,
 		@Body() updateApplicationDto: UpdateApplicationDto
@@ -107,6 +107,7 @@ export class ApplicationController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'Application not found.'
 	})
+	@Auth('admin')
 	remove(@Param('id') id: string): Promise<Application> {
 		return this.applicationService.remove(+id)
 	}

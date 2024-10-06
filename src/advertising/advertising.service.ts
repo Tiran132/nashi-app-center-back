@@ -17,8 +17,8 @@ export class AdvertisingService {
     private readonly telegramUpdate: TelegramUpdate,
   ) {}
 
-  async queueAdvertising(text: string, imageUrl: string): Promise<void> {
-    const message = JSON.stringify({ text, imageUrl });
+  async queueAdvertising(text?: string, mediaUrl?: string): Promise<void> {
+    const message = JSON.stringify({ text, mediaUrl });
     await this.redis.rpush(this.QUEUE_KEY, message);
     this.processQueue();
   }
@@ -37,12 +37,12 @@ export class AdvertisingService {
         break;
       }
 
-      const { text, imageUrl } = JSON.parse(message);
-      this.sendAdvertising(text, imageUrl);
+      const { text, mediaUrl } = JSON.parse(message);
+      this.sendAdvertising(text, mediaUrl);
     }
   }
 
-  private async sendAdvertising(text: string, imageUrl: string): Promise<void> {
+  private async sendAdvertising(text?: string, mediaUrl?: string): Promise<void> {
     const users = await this.userService.getAllUsers();
     const userIds = users.map(user => user.telegramId);
 
@@ -50,7 +50,7 @@ export class AdvertisingService {
 
     for (const userId of userIds) {
       try {
-        await this.telegramUpdate.sendAdvertising(userId, text, imageUrl);
+        await this.telegramUpdate.sendAdvertising(userId, text, mediaUrl);
         await this.redis.srem(this.PROCESSING_SET, userId);
       } catch (error) {
         this.logger.error(`Failed to send advertising to user ${userId}: ${error.message}`);

@@ -57,9 +57,24 @@ export class ApplicationService {
 	}
 
 	async remove(id: number): Promise<Application> {
-		return this.prisma.application.delete({
-			where: { id }
-		})
+		return this.prisma.$transaction(async (prisma) => {
+			const application = await prisma.application.findUnique({
+				where: { id },
+				select: { icon: true, screenshots: true }
+			});
+
+			if (!application) {
+				throw new Error('Application not found');
+			}
+
+			const deletedApplication = await prisma.application.delete({
+				where: { id }
+			});
+
+			setImmediate(() => this.fileCleanupService.cleanupUnusedFiles('uploads'));
+
+			return deletedApplication;
+		});
 	}
 
 	async updateOrderNumber(id: number, newOrderNumber: number): Promise<Application> {

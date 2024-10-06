@@ -29,7 +29,7 @@ export class FileController {
 	@Post()
 	@HttpCode(200)
 	@UseInterceptors(FilesInterceptor('files'))
-	// @Auth('admin')
+	@Auth('admin')
 	@ApiOperation({
 		summary: 'Upload files',
 		description: 'Uploads files to the specified folder.'

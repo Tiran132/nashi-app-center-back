@@ -55,14 +55,26 @@ export class TelegramUpdate {
 		}
 	}
 
-	async sendAdvertising(userId: string, text: string, imageUrl: string) {
-		await this.bot.telegram.sendPhoto(
-			userId,
-			imageUrl,
-			{
-				caption: text,
-				parse_mode: 'HTML'
+	async sendAdvertising(userId: string, text?: string, mediaUrl?: string) {
+		try {
+			if (mediaUrl && text) {
+				await this.bot.telegram.sendPhoto(userId, mediaUrl, {
+					caption: text,
+					parse_mode: 'HTML'
+				});
+			} else if (mediaUrl) {
+				await this.bot.telegram.sendPhoto(userId, mediaUrl);
+			} else if (text) {
+				await this.bot.telegram.sendMessage(userId, text, {
+					parse_mode: 'HTML'
+				});
+			} else {
+				throw new Error('No content provided for advertising');
 			}
-		)
+			this.logger.log(`Advertising sent successfully to user ${userId}`);
+		} catch (error) {
+			this.logger.error(`Failed to send advertising to user ${userId}: ${error.message}`);
+			throw error;
+		}
 	}
 }
