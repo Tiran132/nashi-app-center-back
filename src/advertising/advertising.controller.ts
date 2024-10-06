@@ -9,7 +9,7 @@ export class AdvertisingController {
 	constructor(private readonly advertisingService: AdvertisingService) {}
 
 	@Post('broadcast')
-	@Auth('admin')
+	// @Auth('admin')
 	@ApiBody({
 		type: Object,
 		examples: {
@@ -17,21 +17,23 @@ export class AdvertisingController {
 				summary: 'Example 1',
 				value: {
 					text: 'Привет, это реклама',
-					imageUrl: 'https://example.com/image.jpg'
+					imageUrl: 'https://example.com/image.jpg',
+					batchSize: 5
 				}
 			}
 		},
 		schema: {
 			properties: {
 				text: { type: 'string', example: 'Привет, это реклама' },
-				imageUrl: { type: 'string', example: 'https://example.com/image.jpg' }
+				imageUrl: { type: 'string', example: 'https://example.com/image.jpg' },
+				batchSize: { type: 'number', example: 5 }
 			}
 		}
 	})
-	@ApiOperation({ summary: 'Queue advertising broadcast' })
-	@ApiResponse({ status: 200, description: 'Advertising queued successfully' })
-	async queueAdvertising(@Body() body: { text: string; imageUrl: string }) {
-		await this.advertisingService.queueAdvertising(body.text, body.imageUrl)
-		return { message: 'Advertising queued for broadcast' }
+	@ApiOperation({ summary: 'Send advertising broadcast' })
+	@ApiResponse({ status: 200, description: 'Advertising sent successfully' })
+	async sendAdvertising(@Body() body: { text?: string; imageUrl?: string; batchSize?: number }) {
+		await this.advertisingService.sendAdvertising(body.text, body.imageUrl, body.batchSize);
+		return { message: 'Advertising broadcast initiated' };
 	}
 }

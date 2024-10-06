@@ -1,13 +1,15 @@
-import { Ctx, InjectBot, Start, Update } from 'nestjs-telegraf'
-import { UserService } from 'src/user/user.service'
-import { Context, Markup, Telegraf } from 'telegraf'
-import { SceneContext, SceneSession } from 'telegraf/typings/scenes'
-import { MixpanelService } from 'src/mixpanel/mixpanel.service'
-import { Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common';
+import { Ctx, InjectBot, Start, Update } from 'nestjs-telegraf';
+import { Context, Markup, Telegraf } from 'telegraf';
+import { UserService } from '../user/user.service';
+import { MixpanelService } from '../mixpanel/mixpanel.service';
+import { SceneContext, SceneSession } from 'telegraf/typings/scenes';
 
 @Update()
+@Injectable()
 export class TelegramUpdate {
-	private readonly logger = new Logger(TelegramUpdate.name)
+	private readonly logger = new Logger(TelegramUpdate.name);
+	private fileIdCache: { [key: string]: string } = {};
 
 	constructor(
 		@InjectBot() private readonly bot: Telegraf<Context>,
@@ -57,14 +59,47 @@ export class TelegramUpdate {
 
 	async sendAdvertising(userId: string, text?: string, mediaUrl?: string) {
 		try {
-			if (mediaUrl && text) {
-				await this.bot.telegram.sendPhoto(userId, mediaUrl, {
-					caption: text,
-					parse_mode: 'HTML'
-				});
-			} else if (mediaUrl) {
-				await this.bot.telegram.sendPhoto(userId, mediaUrl);
+			if (mediaUrl) {
+				const fileId = this.fileIdCache[mediaUrl];
+				let res;
+
+				try {
+					if (fileId) {
+						this.logger.log(`Attempting to send photo using cached fileId: ${fileId}`);
+						// Попытка отправки по file_id
+						res = await this.bot.telegram.sendPhoto(userId, fileId, {
+							caption: text,
+							parse_mode: 'HTML'
+						});
+						this.logger.log(`Successfully sent photo using cached fileId: ${fileId}`);
+					} else {
+						this.logger.log(`No cached fileId found. Sending photo using URL: ${mediaUrl}`);
+						// Отправка по URL и сохранение file_id
+						res = await this.bot.telegram.sendPhoto(userId, mediaUrl, {
+							caption: text,
+							parse_mode: 'HTML'
+						});
+						if (res.photo && res.photo.length > 0) {
+							const newFileId = res.photo[res.photo.length - 1].file_id;
+							this.fileIdCache[mediaUrl] = newFileId;
+							this.logger.log(`New fileId cached for URL ${mediaUrl}: ${newFileId}`);
+						}
+					}
+				} catch (photoError) {
+					// Если отправка фото не удалась, попробуем отправить как документ
+					this.logger.warn(`Failed to send as photo, trying as document: ${photoError.message}`);
+					res = await this.bot.telegram.sendDocument(userId, mediaUrl, {
+						caption: text,
+						parse_mode: 'HTML'
+					});
+					if (res.document) {
+						const docFileId = res.document.file_id;
+						this.fileIdCache[mediaUrl] = docFileId;
+						this.logger.log(`Sent as document. New fileId cached: ${docFileId}`);
+					}
+				}
 			} else if (text) {
+				this.logger.log(`Sending text message to user ${userId}`);
 				await this.bot.telegram.sendMessage(userId, text, {
 					parse_mode: 'HTML'
 				});

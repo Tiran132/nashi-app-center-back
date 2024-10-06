@@ -1,63 +1,51 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
-import { UserService } from '../user/user.service';
-import { TelegramUpdate } from '../telegram/telegram.update';
+import { Injectable, Logger } from '@nestjs/common'
+import { UserService } from '../user/user.service'
+import { TelegramUpdate } from '../telegram/telegram.update'
 
 @Injectable()
 export class AdvertisingService {
-  private readonly logger = new Logger(AdvertisingService.name);
-  private readonly QUEUE_KEY = 'advertising_queue';
-  private readonly PROCESSING_SET = 'processing_set';
-  private readonly MAX_CONCURRENT = 8;
+	private readonly logger = new Logger(AdvertisingService.name)
+	private readonly MAX_BATCH_SIZE = 8
 
-  constructor(
-    @InjectRedis() private readonly redis: Redis,
-    private readonly userService: UserService,
-    private readonly telegramUpdate: TelegramUpdate,
-  ) {}
+	constructor(
+		private readonly userService: UserService,
+		private readonly telegramUpdate: TelegramUpdate
+	) {}
 
-  async queueAdvertising(text?: string, mediaUrl?: string): Promise<void> {
-    const message = JSON.stringify({ text, mediaUrl });
-    await this.redis.rpush(this.QUEUE_KEY, message);
-    this.processQueue();
-  }
+	async sendAdvertising(
+		text?: string,
+		mediaUrl?: string,
+		batchSize: number = this.MAX_BATCH_SIZE
+	): Promise<void> {
+		const users = await this.userService.getAllUsers()
+		const totalUsers = users.length
+		let processedUsers = 0
 
-  private async processQueue(): Promise<void> {
-    const processing = await this.redis.scard(this.PROCESSING_SET);
-    const available = this.MAX_CONCURRENT - processing;
+		while (processedUsers < totalUsers) {
+			const batch = users.slice(processedUsers, processedUsers + batchSize)
 
-    if (available <= 0) {
-      return;
-    }
+			for (const user of batch) {
+				try {
+					await this.telegramUpdate.sendAdvertising(
+						user.telegramId,
+						text,
+						mediaUrl
+					)
+					this.logger.log(`Advertising sent to user ${user.telegramId}`)
+				} catch (error) {
+					this.logger.error(
+						`Failed to send advertising to user ${user.telegramId}: ${error.message}`
+					)
+				}
+			}
 
-    for (let i = 0; i < available; i++) {
-      const message = await this.redis.lpop(this.QUEUE_KEY);
-      if (!message) {
-        break;
-      }
+			processedUsers += batch.length
 
-      const { text, mediaUrl } = JSON.parse(message);
-      this.sendAdvertising(text, mediaUrl);
-    }
-  }
+			await new Promise(resolve => setTimeout(resolve, 400))
+		}
 
-  private async sendAdvertising(text?: string, mediaUrl?: string): Promise<void> {
-    const users = await this.userService.getAllUsers();
-    const userIds = users.map(user => user.telegramId);
-
-    await this.redis.sadd(this.PROCESSING_SET, ...userIds);
-
-    for (const userId of userIds) {
-      try {
-        await this.telegramUpdate.sendAdvertising(userId, text, mediaUrl);
-        await this.redis.srem(this.PROCESSING_SET, userId);
-      } catch (error) {
-        this.logger.error(`Failed to send advertising to user ${userId}: ${error.message}`);
-        await this.redis.srem(this.PROCESSING_SET, userId);
-      }
-    }
-
-    this.processQueue();
-  }
+		this.logger.log(
+			`Advertising campaign completed. Processed ${processedUsers} users.`
+		)
+	}
 }
