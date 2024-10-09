@@ -34,7 +34,7 @@ export class TelegramUpdate {
 				userId: user.id,
 				telegramId: ctx.from.id,
 				username: ctx.from.username,
-				distinct_id: ctx.from.id.toString(),
+				$user_id: ctx.from.id.toString(),
 				firstTime: isNew
 			})
 

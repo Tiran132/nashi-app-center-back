@@ -1,10 +1,11 @@
 import { Controller, Post, Body } from '@nestjs/common'
 import { AdvertisingService } from './advertising.service'
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger'
 import { Auth } from '../auth/decorators/auth.decorator'
 
 @ApiTags('advertising')
 @Controller('advertising')
+@ApiBearerAuth('access-token')
 export class AdvertisingController {
 	constructor(private readonly advertisingService: AdvertisingService) {}
 
